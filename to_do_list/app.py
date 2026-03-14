@@ -1,3 +1,5 @@
+import json
+
 def menu():
     print("\n--- To Do List ---")
     print("1. Add Task")
@@ -7,99 +9,92 @@ def menu():
     print("5. Exit")
 
 
-# ---------- ADD TASK ----------
+def load_tasks():
+    try:
+        with open("task.json", "r") as file:
+            return json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+
+def save_tasks(tasks):
+    with open("task.json", "w") as file:
+        json.dump(tasks, file, indent=4)
+
+
 def add_task():
+    tasks = load_tasks()
     task = input("Enter a new task: ")
 
-    with open("task.txt", "a") as file:   # "a" → append mode
-        file.write(task + ",False\n")     # store task with status False
+    tasks.append({
+        "task": task,
+        "completed": False
+    })
 
+    save_tasks(tasks)
     print("Task added successfully!")
 
 
-# ---------- VIEW TASKS ----------
 def view_tasks():
-    try:
-        with open("task.txt", "r") as file:
-            tasks = file.readlines()
+    tasks = load_tasks()
 
-        if not tasks:
-            print("No tasks found.")
-            return
+    if not tasks:
+        print("No tasks found.")
+        return
 
-        for index, task in enumerate(tasks, start=1):
-            name, status = task.strip().split(",")
-
-            mark = "✓" if status == "True" else " "
-
-            print(f"{index}. {name} [{mark}]")
-
-    except FileNotFoundError:
-        print("No task file found.")
+    for index, task in enumerate(tasks, start=1):
+        mark = "✓" if task["completed"] else " "
+        print(f"{index}. {task['task']} [{mark}]")
 
 
-# ---------- DELETE TASK ----------
 def delete_task():
+    tasks = load_tasks()
+
+    if not tasks:
+        print("No tasks found.")
+        return
+
+    for index, task in enumerate(tasks, start=1):
+        print(f"{index}. {task['task']}")
+
     try:
-        with open("task.txt", "r") as file:
-            tasks = file.readlines()
-
-        if not tasks:
-            print("No tasks to delete.")
-            return
-
-        for index, task in enumerate(tasks, start=1):
-            name, status = task.strip().split(",")
-            print(f"{index}. {name}")
-
         delete_num = int(input("Enter task number to delete: "))
 
         if 1 <= delete_num <= len(tasks):
             tasks.pop(delete_num - 1)
-
-            with open("task.txt", "w") as file:
-                file.writelines(tasks)
-
+            save_tasks(tasks)
             print("Task deleted successfully!")
         else:
             print("Invalid task number.")
 
-    except FileNotFoundError:
-        print("No task file found.")
+    except ValueError:
+        print("Please enter a valid number.")
 
 
-# ---------- MARK TASK COMPLETED ----------
 def mark_completed():
+    tasks = load_tasks()
+
+    if not tasks:
+        print("No tasks found.")
+        return
+
+    for index, task in enumerate(tasks, start=1):
+        print(f"{index}. {task['task']}")
+
     try:
-        with open("task.txt", "r") as file:
-            tasks = file.readlines()
-
-        if not tasks:
-            print("No tasks available.")
-            return
-
-        for index, task in enumerate(tasks, start=1):
-            name, status = task.strip().split(",")
-            print(f"{index}. {name}")
-
-        complete_num = int(input("Enter task number to mark complete: "))
+        complete_num = int(input("Enter task number to mark completed: "))
 
         if 1 <= complete_num <= len(tasks):
-            name, status = tasks[complete_num - 1].strip().split(",")
-            tasks[complete_num - 1] = name + ",True\n"
-
-            with open("task.txt", "w") as file:
-                file.writelines(tasks)
-
+            tasks[complete_num - 1]["completed"] = True
+            save_tasks(tasks)
             print("Task marked as completed!")
         else:
             print("Invalid task number.")
 
-    except FileNotFoundError:
-        print("No task file found.")
+    except ValueError:
+        print("Please enter a valid number.")
 
 
-# ---------- MAIN PROGRAM LOOP ----------
 while True:
     menu()
     choice = input("Enter your choice: ")
