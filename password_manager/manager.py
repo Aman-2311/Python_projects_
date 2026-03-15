@@ -42,9 +42,9 @@ def view_passwords():
 
 def search_password():
     website = int("Enter website number")
-    password = load_passwords()
+    passwords = load_passwords()
 
-    for entry in website:
+    for entry in passwords:
         if entry["website:"]== website:
             print("username:",entry["username"])
             print("password:",entry["password"])
